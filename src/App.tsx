@@ -1,8 +1,26 @@
-import { Home } from "./pages/Home";
 
-function App() {
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+
+import { Home } from "./pages/Home";
+import { NewRoom } from "./pages/NewRoom";
+import { Room } from "./pages/Room";
+
+import { AuthContextProvider } from './contexts/AuthContext';
+
+
+function App() { 
+
+  //envolvendo as rotas com um Context.Provider para que o contexto fique visivel nessas rotas
   return (
-   <Home />
+   <BrowserRouter>
+      <AuthContextProvider>
+          <Routes>
+            <Route path="/" element={<Home/>} />
+            <Route path="/rooms/new" element={<NewRoom/>} />
+            <Route path="/rooms/:id" element={<Room/>} />
+          </Routes>
+      </AuthContextProvider>
+   </BrowserRouter>
   );
 }
 
