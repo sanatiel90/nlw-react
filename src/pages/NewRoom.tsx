@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { FormEvent, useState } from "react";
 
 import illustrationImg from '../assets/images/illustration.svg';
@@ -13,6 +13,7 @@ import '../styles/auth.scss';
 
 export function NewRoom() {
     const { user } = useAuth(); //no do cara ta comentada essa linha
+    const navigate = useNavigate();
 
     const [newRoom, setNewRoom] = useState('');
 
@@ -27,13 +28,14 @@ export function NewRoom() {
         const db = getDatabase();
 
         //escrevendo dados (versao 9 do Firebase)
-        set(ref(db, 'rooms'), {
+        set(ref(db, `rooms/${user?.id}`), {
             title: newRoom,
             authorId: user?.id
         });
 
+        navigate(`/rooms/${user?.id}`);
         
-
+        
     }
 
     return (

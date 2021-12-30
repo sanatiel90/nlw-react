@@ -9,9 +9,12 @@ import { Button } from '../components/Button';
 
 import '../styles/auth.scss';
 import { useAuth } from "../hooks/useAuth";
+import { FormEvent, useState } from 'react';
+import { getDatabase, get, ref, onValue, child } from 'firebase/database';
 
 
 export function Home() {
+    const [roomCode, setRoomCode] = useState('');
 
     const navigate = useNavigate();
     const { user, signInWithGoogle } = useAuth();
@@ -23,6 +26,40 @@ export function Home() {
         }      
         
         navigate('/rooms/new');         
+    }
+
+    async function handleJoinRoom(event: FormEvent){
+        event.preventDefault();
+
+        if(roomCode.trim() === ''){
+            return ;
+        }
+
+        //pega a instancia do db
+        const db = getDatabase();
+
+        //recuperando a DocumentReference do documento em questao, que é rooms/codigoDaRoom 
+        const roomRef = ref(db, `rooms/${roomCode}`);
+     
+        //forma padrao da documentacao 9
+        /*get(child(roomRef, `rooms/${roomCode}`)).then(snapshot => {
+            if(!snapshot.exists()){
+                alert('A sala informada não existe');
+                return;
+            }
+        });*/
+
+        //faz um get na referencia, para conseguir o snapshot
+        const roomSnapshot = await get(roomRef);
+
+        //se o snapshot nao existir...
+        if (!roomSnapshot.exists()){
+            alert('A sala informada não existe');
+            return;
+        }
+
+        navigate(`rooms/${roomCode}`);
+
     }
     
     return (
@@ -40,10 +77,13 @@ export function Home() {
                         Crie sua sala com Google
                     </button>
                     <div className='separator' >ou entre em uma sala</div>
-                    <form>
+                    <form onSubmit={handleJoinRoom} >
                         <input 
                             type="text" 
                             placeholder='Digite o código da sala'
+                            
+                            value={roomCode}
+                            onChange={event => setRoomCode(event.target.value)}
                         />
                         <Button type='submit'>
                             Entrar na sala
