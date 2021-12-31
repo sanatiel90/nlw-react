@@ -7,9 +7,10 @@ import logoImg from '../assets/images/logo.svg';
 import { Button } from '../components/Button'
 import { useAuth } from '../hooks/useAuth';
 
-import { getDatabase, ref, set } from "firebase/database";
+import { getDatabase, push, ref, set } from "firebase/database";
 
 import '../styles/auth.scss';
+import { timeStamp } from 'console';
 
 export function NewRoom() {
     const { user } = useAuth(); //no do cara ta comentada essa linha
@@ -23,18 +24,20 @@ export function NewRoom() {
         if(newRoom.trim() === '') {
             return;
         }
-
-        //pegando a conexao com firebase
-        const db = getDatabase();
-
+        
         //escrevendo dados (versao 9 do Firebase)
-        set(ref(db, `rooms/${user?.id}`), {
+        const db = getDatabase(); //pegando a conexao com firebase         
+        const roomsListRef = ref(db, 'rooms'); //pegando a ref (documento) em questao, no caso 'rooms'
+        const newRoomRef = push(roomsListRef); //abrindo um novo espaco nesse Ref
+        //setando o novo valor que sera gravado no banco
+        set(newRoomRef, {
             title: newRoom,
             authorId: user?.id
         });
 
-        navigate(`/rooms/${user?.id}`);
+        const roomId = newRoomRef.key; //a nova ref tera uma key unica para identifica-la
         
+        navigate(`/rooms/${roomId}`);        
         
     }
 
