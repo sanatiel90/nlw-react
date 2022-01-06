@@ -1,5 +1,5 @@
-import { getDatabase, push, ref, set } from "firebase/database";
-import { FormEvent, useState } from "react";
+import { getDatabase, onValue, push, ref, set } from "firebase/database";
+import { FormEvent, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 
@@ -9,6 +9,28 @@ import { RoomCode } from '../components/RoomCode';
 import { useAuth } from "../hooks/useAuth";
 
 import '../styles/room.scss'
+
+type FirebaseQuestions = Record<string, {
+    author: {
+        name: string;
+        avatar: string;
+    }
+    content: string;
+    isAnswered: boolean;
+    isHighlighted: boolean;
+}>
+
+type Question = {
+    id: string;
+    author: {
+        name: string;
+        avatar: string;
+    }
+    content: string;
+    isAnswered: boolean;
+    isHighlighted: boolean;
+}
+
 
 type RoomParams = {
     id: string;
@@ -23,6 +45,40 @@ export function Room(){
     const roomId = params.id;
 
     const [newQuestion, setNewQuestion] = useState('');
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [title, setTitle] = useState('');
+
+    useEffect(() => {
+        //pega a ref no banco
+        const roomRef = ref(getDatabase(), `rooms/${roomId}`);
+        //retornando os valores presentes na lista e monitorando as mudanças do msm atraves do onValue
+        onValue(roomRef, (snapshot) => {            
+            //fazendo essa parada doida pq o firebase retorna as questions como um Object, e precisamos de um Array
+            const databaseRoom = snapshot.val();
+            const firebaseQuestions: FirebaseQuestions = databaseRoom.questions ?? {};
+            const parsedQuestions = Object.entries(firebaseQuestions).map(([key, value]) =>{
+                return {
+                    id: key,
+                    content: value.content,
+                    author: value.author,
+                    isHighlighted: value.isHighlighted,
+                    isAnswered: value.isAnswered
+                }
+            });            
+
+            console.log(parsedQuestions);
+
+            setTitle(databaseRoom.title);
+            setQuestions(parsedQuestions);
+
+            /*snapshot.forEach(s => {
+                console.log(typeof s.val());
+            })*/
+        });
+
+        console.log('done');
+
+    }, [roomId]);
 
     async function handleSendQuestion(event: FormEvent){
         event.preventDefault();
@@ -51,9 +107,8 @@ export function Room(){
         //gravando no banco de dados Firebase 9
         const newQuestionRef = push(ref(getDatabase(), `rooms/${roomId}/questions`))
         set(newQuestionRef, question);
-
         
-        
+        setNewQuestion('');        
 
     }
 
@@ -68,8 +123,8 @@ export function Room(){
 
             <main>
                 <div className='room-title'>
-                    <h1>Sala React</h1>
-                    <span>4 perguntas</span>
+                    <h1>Sala { title }</h1>
+                    { questions.length > 0 && <span>{questions.length} pergunta(s)</span> }
                 </div>
 
                 <form onSubmit={handleSendQuestion}>
@@ -80,10 +135,21 @@ export function Room(){
                     />
 
                     <div className='form-footer'>
-                        <span>Para enviar uma pergunta, <button>Faça seu login</button>.</span>
+                        { user ? (
+                          <div className="user-info">
+                              <img src={user.avatar} alt={user.name} />
+                              <span>{user.name}</span>
+                          </div>  
+                        ) : (
+                            <span>Para enviar uma pergunta, <button>Faça seu login</button>.</span>
+                        ) }                        
+                        
                         <Button type='submit' disabled={!user} >Enviar pergunta</Button>
                     </div>
                 </form>
+
+                {JSON.stringify(questions)}                            
+
                 <Toaster />
             </main>
         </div>
