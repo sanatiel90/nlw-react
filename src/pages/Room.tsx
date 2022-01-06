@@ -64,19 +64,13 @@ export function Room(){
                     isHighlighted: value.isHighlighted,
                     isAnswered: value.isAnswered
                 }
-            });            
-
-            console.log(parsedQuestions);
+            });                        
 
             setTitle(databaseRoom.title);
             setQuestions(parsedQuestions);
 
-            /*snapshot.forEach(s => {
-                console.log(typeof s.val());
-            })*/
         });
 
-        console.log('done');
 
     }, [roomId]);
 
