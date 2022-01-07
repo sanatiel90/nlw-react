@@ -19,6 +19,14 @@
         margin-right: 8px;
     }
 
+    //& faz referencia ao elemento em questao, no caso .button
+    //se  .button receber uma classe .outlined
+    &.outlined {
+        background-color: #fff;
+        border: 1px solid #835afd;
+        color: #835afd;
+    }
+
     &:not(:disabled):hover {
         filter: brightness(0.9);
     }    

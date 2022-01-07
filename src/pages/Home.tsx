@@ -58,6 +58,12 @@ export function Home() {
             return;
         }
 
+        //se sala ja estiver finalizada...
+        if(roomSnapshot.val().endedAt){
+            alert('A sala informada já está fechada!');
+            return;
+        }
+
         navigate(`rooms/${roomCode}`);
 
     }
